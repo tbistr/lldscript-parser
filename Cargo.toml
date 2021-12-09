@@ -1,8 +1,12 @@
 [package]
-name = "hello_remote_world"
+name = "lldscript_parser"
 version = "0.1.0"
-authors = ["VS Code <vscode@microsoft.com>"]
+authors = ["tbistr"]
 
 [lib]
-path ="./src/lib/lib.rs"
+path = "./src/lib.rs"
 
+edition = "2021"
+
+[dependencies]
+nom = "7.1.0"
