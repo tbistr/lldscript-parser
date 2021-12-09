@@ -38,7 +38,7 @@ fn attr(i: &str) -> IResult<&str, String> {
             delimited(tag("("), take_until(")"), tag(")")),
             space0,
         )),
-        |(_, attr, _)| String::from_str(attr),
+        |(_, attr, _)| String::from_str(str::trim(attr)),
     )(i)
 }
 
@@ -65,10 +65,12 @@ fn block(i: &str) -> IResult<&str, Block> {
             name,
             combinator::opt(attr),
             tag(":"),
+            //
             origin,
             tag("="),
             parse_int,
             tag(","),
+            //
             length,
             tag("="),
             parse_int,
@@ -85,9 +87,15 @@ fn block(i: &str) -> IResult<&str, Block> {
 
 #[test]
 fn block_test() {
-    let case = "ram (rw) : ORIGIN = 0x1000, LENGTH = 0x1000";
+    let cases = [
+        "ram (rw) : ORIGIN = 0x1000, LENGTH = 0x1000",
+        "rom (!rw) : org = 1234, len = 1K",
+        "ram (rw) : o = 1M, LENGTH = 1111H",
+        "hoge   (  rw)  : ORIGIN   = 0x1000   , LENGTH   = 0x1000  ",
+        "ram (rw) : ORIGIN = 0x1000, LENGTH = 0x1000",
+    ];
     assert_eq!(
-        block(case),
+        block(cases[0]),
         Ok((
             "",
             Block {
@@ -97,7 +105,12 @@ fn block_test() {
                 length: 16 * 16 * 16
             }
         ))
-    )
+    );
+    for case in cases {
+        let res = block(case);
+        println!("{:?}", res);
+        assert!(res.is_ok());
+    }
 }
 
 fn memory(i: &str) -> IResult<&str, Memory> {
