@@ -3,7 +3,7 @@ use nom::{
     bytes::complete::tag,
     character::complete::{digit1, hex_digit1, space0},
     combinator::map_res,
-    sequence::{preceded, terminated},
+    sequence::{delimited, preceded, terminated},
     IResult,
 };
 
@@ -12,7 +12,7 @@ use nom::{
 // have "K" (Ki) or "M" (Mi) suffixes.
 // https://github.com/llvm/llvm-project/blob/main/lld/ELF/ScriptParser.cpp#L1132
 pub fn parse_int(i: &str) -> IResult<&str, u64> {
-    preceded(
+    delimited(
         space0,
         alt((
             map_res(preceded(tag("0x"), hex_digit1), |hex| {
@@ -29,6 +29,7 @@ pub fn parse_int(i: &str) -> IResult<&str, u64> {
             }),
             map_res(digit1, str::parse::<u64>),
         )),
+        space0,
     )(i)
 }
 
