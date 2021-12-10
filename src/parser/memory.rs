@@ -3,13 +3,14 @@ use std::str::FromStr;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_until},
-    character::complete::{alphanumeric1, multispace0, oct_digit0, space0, space1},
-    combinator,
-    sequence::{self, delimited, preceded, tuple},
+    character::complete::{alphanumeric1, line_ending, multispace0, multispace1, space0},
+    combinator::{map, map_res, opt},
+    multi::{many0, many1, separated_list0},
+    sequence::{delimited, preceded, terminated, tuple},
     IResult,
 };
 
-use super::{num::parse_int, sp};
+use super::num::parse_int;
 
 // name [(attr)] : ORIGIN = origin, LENGTH = len
 #[derive(Debug, PartialEq)]
@@ -25,13 +26,13 @@ type Memory = Vec<Block>;
 // WS*[name]WS*
 // NOTE: now, [name] should be alphanumeric. should modify the last space0 to space1?
 fn name(i: &str) -> IResult<&str, String> {
-    combinator::map_res(delimited(space0, alphanumeric1, space0), String::from_str)(i)
+    map_res(delimited(space0, alphanumeric1, space0), String::from_str)(i)
 }
 
 // WS*[attr]?WS*
 fn attr(i: &str) -> IResult<&str, String> {
-    combinator::map_res(
-        sequence::tuple((
+    map_res(
+        tuple((
             space0,
             delimited(tag("("), take_until(")"), tag(")")),
             space0,
@@ -42,26 +43,26 @@ fn attr(i: &str) -> IResult<&str, String> {
 
 // WS*("ORIGIN"|"org"|"o")WS*
 fn origin(i: &str) -> IResult<&str, &str> {
-    combinator::map(
-        sequence::tuple((space0, alt((tag("ORIGIN"), tag("org"), tag("o"))), space0)),
+    map(
+        tuple((space0, alt((tag("ORIGIN"), tag("org"), tag("o"))), space0)),
         |(_, origin, _)| origin,
     )(i)
 }
 
 // WS*("LENGTH"|"len"|"l")WS*
 fn length(i: &str) -> IResult<&str, &str> {
-    combinator::map(
-        sequence::tuple((space0, alt((tag("LENGTH"), tag("len"), tag("l"))), space0)),
+    map(
+        tuple((space0, alt((tag("LENGTH"), tag("len"), tag("l"))), space0)),
         |(_, origin, _)| origin,
     )(i)
 }
 
 // [name] ([attr])? : ORIGIN = [origin], LENGTH = [len]
 fn block(i: &str) -> IResult<&str, Block> {
-    combinator::map(
-        sequence::tuple((
+    map(
+        tuple((
             name,
-            combinator::opt(attr),
+            opt(attr),
             tag(":"),
             //
             origin,
@@ -111,12 +112,20 @@ fn block_test() {
     }
 }
 
+// WS* MEMORY WS* { (NL* [block])? (NL+ [block])* NL* }
 fn memory(i: &str) -> IResult<&str, Memory> {
-    let res: Memory = vec![];
-    let (i, _) = tag("MEMORY")(i)?;
-    let (i, _) = delimited(tag("{"), take_until("}"), tag("}"))(i)?;
-
-    Ok(("", res))
+    let block_lines = separated_list0(multispace1, block);
+    delimited(
+        tuple((
+            multispace0,
+            tag("MEMORY"),
+            multispace0,
+            tag("{"),
+            multispace0,
+        )),
+        block_lines,
+        tuple((multispace0, tag("}"))),
+    )(i)
 }
 
 // fn block(i: &str) -> IResult<&str, Memory> {
@@ -125,5 +134,38 @@ fn memory(i: &str) -> IResult<&str, Memory> {
 
 #[test]
 fn memory_test() {
-    println!("{:?}", attr("(hogehuga)"))
+    let cases = [
+        "MEMORY
+  {
+    rom (rx)  : ORIGIN = 0, LENGTH = 256K
+    ram (!rx) : org = 0x40000000, l = 4M
+  }",
+        "MEMORY
+  {
+    rom (rx)  : ORIGIN = 0, LENGTH = 256K
+
+    ram (!rx) : org = 0x40000000, l = 4M
+
+
+
+  }",
+        "MEMORY{rom (rx)  : ORIGIN = 0, LENGTH = 256K}",
+        "MEMORY{
+rom (rx)  : ORIGIN = 0, LENGTH = 256K   }",
+    ];
+    for case in cases {
+        assert!(memory(case).is_ok());
+    }
+
+    let bad_cases = [
+        "MEMORY
+  {
+    rom (rx)  : ORIGIN = 0, LENGTH = 256K  ram (!rx) : org = 0x40000000, l = 4M
+  }",
+        "MEMORY{rom (rx)  : ORIGIN = 0, 
+LENGTH = 256K}",
+    ];
+    for case in bad_cases {
+        assert!(!memory(case).is_ok());
+    }
 }
