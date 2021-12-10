@@ -22,15 +22,13 @@ struct Block {
 
 type Memory = Vec<Block>;
 
-// (WS|CRLF)*[name]WS*
+// WS*[name]WS*
+// NOTE: now, [name] should be alphanumeric. should modify the last space0 to space1?
 fn name(i: &str) -> IResult<&str, String> {
-    combinator::map_res(
-        delimited(multispace0, alphanumeric1, space1),
-        String::from_str,
-    )(i)
+    combinator::map_res(delimited(space0, alphanumeric1, space0), String::from_str)(i)
 }
 
-// WS*[attr]WS*
+// WS*[attr]?WS*
 fn attr(i: &str) -> IResult<&str, String> {
     combinator::map_res(
         sequence::tuple((
@@ -58,7 +56,7 @@ fn length(i: &str) -> IResult<&str, &str> {
     )(i)
 }
 
-// name [(attr)] : ORIGIN = origin, LENGTH = len
+// [name] ([attr])? : ORIGIN = [origin], LENGTH = [len]
 fn block(i: &str) -> IResult<&str, Block> {
     combinator::map(
         sequence::tuple((
@@ -92,7 +90,7 @@ fn block_test() {
         "rom (!rw) : org = 1234, len = 1K",
         "ram (rw) : o = 1M, LENGTH = 1111H",
         "hoge   (  rw)  : ORIGIN   = 0x1000   , LENGTH   = 0x1000  ",
-        "ram (rw) : ORIGIN = 0x1000, LENGTH = 0x1000",
+        "ram(rw) : ORIGIN = 0x1000, LENGTH = 0x1000", // TODO: check spec of the lld.
     ];
     assert_eq!(
         block(cases[0]),
