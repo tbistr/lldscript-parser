@@ -11,7 +11,7 @@ use nom::{
 // "0x" or suffixed with "H") and decimal numbers. Decimal numbers may
 // have "K" (Ki) or "M" (Mi) suffixes.
 // https://github.com/llvm/llvm-project/blob/main/lld/ELF/ScriptParser.cpp#L1132
-// WS*[int]WS*
+// SP*[int]SP*
 pub fn parse_int(i: &str) -> IResult<&str, u64> {
     delimited(
         space0,
