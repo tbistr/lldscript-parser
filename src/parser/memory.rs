@@ -23,13 +23,13 @@ struct Block {
 
 type Memory = Vec<Block>;
 
-// WS*[name]WS*
+// SP*[name]SP*
 // NOTE: now, [name] should be alphanumeric. should modify the last space0 to space1?
 fn name(i: &str) -> IResult<&str, String> {
     map_res(delimited(space0, alphanumeric1, space0), String::from_str)(i)
 }
 
-// WS*[attr]?WS*
+// SP*[attr]?SP*
 fn attr(i: &str) -> IResult<&str, String> {
     map_res(
         tuple((
@@ -41,7 +41,7 @@ fn attr(i: &str) -> IResult<&str, String> {
     )(i)
 }
 
-// WS*("ORIGIN"|"org"|"o")WS*
+// SP*("ORIGIN"|"org"|"o")SP*
 fn origin(i: &str) -> IResult<&str, &str> {
     map(
         tuple((space0, alt((tag("ORIGIN"), tag("org"), tag("o"))), space0)),
@@ -49,7 +49,7 @@ fn origin(i: &str) -> IResult<&str, &str> {
     )(i)
 }
 
-// WS*("LENGTH"|"len"|"l")WS*
+// SP*("LENGTH"|"len"|"l")SP*
 fn length(i: &str) -> IResult<&str, &str> {
     map(
         tuple((space0, alt((tag("LENGTH"), tag("len"), tag("l"))), space0)),
@@ -112,7 +112,7 @@ fn block_test() {
     }
 }
 
-// WS* MEMORY WS* { (NL* [block])? (NL+ [block])* NL* }
+// SP* MEMORY SP* { (NL* [block])? (NL+ [block])* NL* }
 fn memory(i: &str) -> IResult<&str, Memory> {
     let block_lines = separated_list0(multispace1, block);
     delimited(
