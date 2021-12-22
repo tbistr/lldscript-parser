@@ -8,7 +8,7 @@ use nom::{
     combinator::{map, map_res, opt},
     multi::separated_list0,
     sequence::{delimited, tuple},
-    IResult, Parser,
+    IResult,
 };
 
 use super::num::parse_int;

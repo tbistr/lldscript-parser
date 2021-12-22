@@ -3,9 +3,8 @@ mod num;
 
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take_till, take_until},
+    bytes::complete::{tag, take_until},
     character::complete::{line_ending, not_line_ending},
-    error::{Error, ParseError},
     sequence::{delimited, tuple},
     IResult,
 };
