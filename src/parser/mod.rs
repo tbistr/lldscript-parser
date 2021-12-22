@@ -12,13 +12,6 @@ use std::str;
 
 use crate::lld;
 
-fn comment(i: &str) -> IResult<&str, &str> {
-    alt((
-        delimited(tag("//"), not_line_ending, line_ending),
-        delimited(tag("*/"), take_until("/*"), tag("/*")),
-    ))(i)
-}
-
 pub fn parse(i: &str) -> Result<lld::Script, String> {
     tuple((take_until("MEMORY"), memory::memory))(i)
         .map(|(suf, (pre, memory))| lld::Script {
@@ -27,6 +20,13 @@ pub fn parse(i: &str) -> Result<lld::Script, String> {
             others2: suf.to_string(),
         })
         .map_err(|e| e.to_string())
+}
+
+fn comment(i: &str) -> IResult<&str, &str> {
+    alt((
+        delimited(tag("//"), not_line_ending, line_ending),
+        delimited(tag("*/"), take_until("/*"), tag("/*")),
+    ))(i)
 }
 
 #[test]

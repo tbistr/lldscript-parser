@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "lldscript_parser"
+name = "lld-pg"
 version = "0.1.0"
 dependencies = [
  "nom",
