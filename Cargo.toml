@@ -3,6 +3,10 @@ name = "lld-pg"
 version = "0.1.0"
 authors = ["tbistr"]
 
+description = "lld-script parser and generator"
+
+license = "MIT"
+
 [lib]
 path = "./src/lib.rs"
 
