@@ -1,27 +1,17 @@
 use std::str::FromStr;
 
+use crate::lld::{Block, Memory};
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_until},
-    character::complete::{alphanumeric1, line_ending, multispace0, multispace1, space0},
+    character::complete::{alphanumeric1, multispace0, multispace1, space0},
     combinator::{map, map_res, opt},
-    multi::{many0, many1, separated_list0},
-    sequence::{delimited, preceded, terminated, tuple},
-    IResult,
+    multi::separated_list0,
+    sequence::{delimited, tuple},
+    IResult, Parser,
 };
 
 use super::num::parse_int;
-
-// name [(attr)] : ORIGIN = origin, LENGTH = len
-#[derive(Debug, PartialEq)]
-struct Block {
-    name: String,
-    attr: Option<String>,
-    origin: u64,
-    length: u64,
-}
-
-type Memory = Vec<Block>;
 
 // SP*[name]SP*
 // NOTE: now, [name] should be alphanumeric. should modify the last space0 to space1?
@@ -113,7 +103,7 @@ fn block_test() {
 }
 
 // SP* MEMORY SP* { (NL* [block])? (NL+ [block])* NL* }
-fn memory(i: &str) -> IResult<&str, Memory> {
+pub fn memory(i: &str) -> IResult<&str, Memory> {
     let block_lines = separated_list0(multispace1, block);
     delimited(
         tuple((
@@ -126,6 +116,7 @@ fn memory(i: &str) -> IResult<&str, Memory> {
         block_lines,
         tuple((multispace0, tag("}"))),
     )(i)
+    .map(|(r, blocks)| (r, Memory { blocks }))
 }
 
 // fn block(i: &str) -> IResult<&str, Memory> {
