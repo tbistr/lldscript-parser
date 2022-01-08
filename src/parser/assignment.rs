@@ -1,9 +1,7 @@
-use std::str::FromStr;
-
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{alpha1, alphanumeric1, one_of},
+    character::complete::{alpha1, alphanumeric1},
     combinator::recognize,
     multi::many0,
     sequence::pair,
@@ -17,6 +15,7 @@ struct Assignment {
 }
 
 enum Operator {}
+
 fn symbol(i: &str) -> IResult<&str, &str> {
     recognize(pair(
         alt((alpha1, tag("_"), tag("."))),

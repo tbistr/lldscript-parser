@@ -1,6 +1,6 @@
 [package]
 name = "lld-pg"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["tbistr"]
 
 description = "lld-script parser and generator"

@@ -1,3 +1,5 @@
+mod assignment;
+mod keywords;
 mod memory;
 mod num;
 

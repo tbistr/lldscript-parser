@@ -19,11 +19,19 @@ pub struct Memory {
     pub blocks: Vec<Block>,
 }
 
+impl fmt::Display for Script {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f,"{}",self.others1)?;
+        writeln!(f,"{}",self.memory)?;
+        writeln!(f,"{}",self.others2)
+    }
+}
+
 impl fmt::Display for Block {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{}{} : ORIGIN = {}, LENGTH = {}",
+            "{} ({}) : ORIGIN = {}, LENGTH = {}",
             self.name,
             self.attr
                 .as_ref()
